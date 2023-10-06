@@ -8,6 +8,9 @@ defmodule TelemedoTest do
     def test() do
       measure [:test] do
         42
+      after
+        42 ->
+          %{response: "hi mom"}
       end
     end
   end
@@ -25,6 +28,8 @@ defmodule TelemedoTest do
     assert 42 = Fake.test()
 
     assert [[:test, :start], _measurements, _context] = TestTelemetryHandler.get_event(handler, 1)
-    assert [[:test, :stop], _measurements, _context] = TestTelemetryHandler.get_event(handler, 2)
+
+    assert [[:test, :stop], _measurements, %{response: "hi mom"}] =
+             TestTelemetryHandler.get_event(handler, 2)
   end
 end
