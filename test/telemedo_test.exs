@@ -1,5 +1,6 @@
 defmodule TelemedoTest do
   use ExUnit.Case
+  alias Telemedo.TestTelemetryHandler
 
   defmodule Fake do
     import Telemedo
@@ -12,33 +13,18 @@ defmodule TelemedoTest do
   end
 
   setup %{test: test} do
-    {:ok, pid} = start_supervised({Agent, fn -> [] end})
-    attach_metric(test, pid)
-    {:ok, agent: pid}
+    {:ok, handler} =
+      start_supervised(
+        {TestTelemetryHandler, id: test, events: [[:test, :start], [:test, :stop]]}
+      )
+
+    {:ok, handler: handler}
   end
 
-  test "handles the do block", %{agent: agent} do
+  test "handles the do block", %{handler: handler} do
     assert 42 = Fake.test()
 
-    Agent.get(agent, fn state ->
-      assert [
-               [[:test, :stop], _, _],
-               [[:test, :start], _, _]
-             ] = state
-
-      state
-    end)
-  end
-
-  def attach_metric(test_name, pid) do
-    :telemetry.attach_many(
-      test_name,
-      [[:test, :start], [:test, :stop]],
-      fn event, measurements, context, _config ->
-        dbg()
-        Agent.update(pid, fn state -> [[event, measurements, context] | state] end)
-      end,
-      nil
-    )
+    assert [[:test, :start], _measurements, _context] = TestTelemetryHandler.get_event(handler, 1)
+    assert [[:test, :stop], _measurements, _context] = TestTelemetryHandler.get_event(handler, 2)
   end
 end
