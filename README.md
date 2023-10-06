@@ -1,5 +1,7 @@
 # Telemedo
 
+> This is a WIP beta project
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
