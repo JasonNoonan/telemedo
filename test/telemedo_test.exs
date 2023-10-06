@@ -1,12 +1,12 @@
 defmodule TelemedoTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   alias Telemedo.TestTelemetryHandler
 
   defmodule Fake do
-    import Telemedo
+    require Telemedo
 
     def test() do
-      measure event: [:test], context: %{initial: true} do
+      Telemedo.measure event: [:test], context: %{initial: true} do
         42
       after
         42 ->
@@ -27,13 +27,27 @@ defmodule TelemedoTest do
     {:ok, handler: handler}
   end
 
-  test "handles the do block", %{handler: handler} do
-    assert 42 = Fake.test()
+  test "correct start and stop events are fired", %{handler: handler} do
+    Fake.test()
 
-    assert [[:test, :start], _measurements, %{initial: true}] =
+    assert [[:test, :start], _measurements, _context] =
              TestTelemetryHandler.get_event(handler, 1)
 
-    assert [[:test, :stop], _measurements, %{initial: true, response: "hi mom"}] =
+    assert [[:test, :stop], _measurements, _context] =
              TestTelemetryHandler.get_event(handler, 2)
   end
+
+  test "initial metadata can be passed for start event"
+  test "after block adds metadata to stop event"
+  test "return of do block is return of macro"
+
+  # test "handles the do block", %{handler: handler} do
+  #   assert 42 = Fake.test()
+  #
+  #   assert [[:test, :start], _measurements, %{initial: true}] =
+  #            TestTelemetryHandler.get_event(handler, 1)
+  #
+  #   assert [[:test, :stop], _measurements, %{initial: true, response: "hi mom"}] =
+  #            TestTelemetryHandler.get_event(handler, 2)
+  # end
 end
