@@ -6,11 +6,14 @@ defmodule TelemedoTest do
     import Telemedo
 
     def test() do
-      measure [:test] do
+      measure event: [:test], context: %{initial: true} do
         42
       after
         42 ->
           %{response: "hi mom"}
+
+        _ ->
+          %{response: "comment line 42"}
       end
     end
   end
@@ -27,9 +30,10 @@ defmodule TelemedoTest do
   test "handles the do block", %{handler: handler} do
     assert 42 = Fake.test()
 
-    assert [[:test, :start], _measurements, _context] = TestTelemetryHandler.get_event(handler, 1)
+    assert [[:test, :start], _measurements, %{initial: true}] =
+             TestTelemetryHandler.get_event(handler, 1)
 
-    assert [[:test, :stop], _measurements, %{response: "hi mom"}] =
+    assert [[:test, :stop], _measurements, %{initial: true, response: "hi mom"}] =
              TestTelemetryHandler.get_event(handler, 2)
   end
 end
