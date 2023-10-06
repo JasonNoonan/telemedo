@@ -11,10 +11,8 @@ defmodule Telemedo.TestTelemetryHandler do
       :telemetry.attach_many(
         id,
         events,
-        fn event, measurements, context, _config ->
-          add_event(agent_pid, [event, measurements, context])
-        end,
-        nil
+        &__MODULE__.attach/4,
+        %{agent: agent_pid}
       )
 
       []
@@ -31,5 +29,9 @@ defmodule Telemedo.TestTelemetryHandler do
       |> Enum.reverse()
       |> Enum.at(event_number - 1)
     end)
+  end
+
+  def attach(event, measurements, context, %{agent: agent}) do
+    add_event(agent, [event, measurements, context])
   end
 end
