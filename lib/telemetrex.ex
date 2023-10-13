@@ -1,7 +1,17 @@
 defmodule Telemetrex do
-  defmacro span(opts, do: block_do, after: block_after) do
+  defmacro span(opts, clauses) do
     metric = opts[:event]
     context = opts[:context]
+    block_do = clauses[:do]
+
+    block_after =
+      Keyword.get(
+        clauses,
+        :after,
+        quote do
+          _do_return -> %{}
+        end
+      )
 
     quote do
       :telemetry.span(unquote(metric), unquote(context), fn ->
