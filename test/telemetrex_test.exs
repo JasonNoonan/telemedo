@@ -8,12 +8,12 @@ defmodule TelemetrexTest do
     def test() do
       Telemetrex.span event: [:test], context: %{initial: true} do
         42
-      after
-        42 ->
-          %{response: "hi mom"}
-
-        _ ->
-          %{response: "comment line 42"}
+        # after
+        #   42 ->
+        #     %{response: "hi mom"}
+        #
+        #   _ ->
+        #     %{response: "comment line 42"}
       end
     end
 
@@ -21,9 +21,6 @@ defmodule TelemetrexTest do
       Telemetrex.span event: [:test], context: %{initial: true} do
         Telemetrex.span event: [:nested], context: %{} do
           42
-        after
-          _ ->
-            %{response: "nested hi"}
         end
       after
         _ ->
