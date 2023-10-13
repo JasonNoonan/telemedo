@@ -16,12 +16,27 @@ defmodule TelemetrexTest do
           %{response: "comment line 42"}
       end
     end
+
+    def nested() do
+      Telemetrex.span event: [:test], context: %{initial: true} do
+        Telemetrex.span event: [:nested], context: %{} do
+          42
+        after
+          _ ->
+            %{response: "nested hi"}
+        end
+      after
+        _ ->
+          %{response: "hi mom"}
+      end
+    end
   end
 
   setup %{test: test} do
     {:ok, handler} =
       start_supervised(
-        {TestTelemetryHandler, id: test, events: [[:test, :start], [:test, :stop]]}
+        {TestTelemetryHandler,
+         id: test, events: [[:test, :start], [:test, :stop], [:nested, :start], [:nested, :stop]]}
       )
 
     {:ok, handler: handler}
@@ -35,6 +50,22 @@ defmodule TelemetrexTest do
 
     assert [[:test, :stop], _measurements, _context] =
              TestTelemetryHandler.get_event(handler, 2)
+  end
+
+  test "calling nested span blocks", %{handler: handler} do
+    Fake.nested()
+
+    assert [[:test, :start], _measurements, _context] =
+             TestTelemetryHandler.get_event(handler, 1)
+
+    assert [[:nested, :start], _measurements, _context] =
+             TestTelemetryHandler.get_event(handler, 2)
+
+    assert [[:nested, :stop], _measurements, _context] =
+             TestTelemetryHandler.get_event(handler, 3)
+
+    assert [[:test, :stop], _measurements, _context] =
+             TestTelemetryHandler.get_event(handler, 4)
   end
 
   test "initial metadata can be passed for start event"
