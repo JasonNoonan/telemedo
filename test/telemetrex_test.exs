@@ -6,7 +6,7 @@ defmodule TelemetrexTest do
     require Telemetrex
 
     def test() do
-      Telemetrex.measure event: [:test], context: %{initial: true} do
+      Telemetrex.span event: [:test], context: %{initial: true} do
         42
       after
         42 ->
