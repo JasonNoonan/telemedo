@@ -1,9 +1,9 @@
-defmodule Telemedo.MixProject do
+defmodule Telemetrex.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :telemedo,
+      app: :telemetrex,
       version: "0.1.0",
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,

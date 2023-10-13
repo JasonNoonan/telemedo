@@ -1,4 +1,4 @@
-defmodule Telemedo do
+defmodule Telemetrex do
   defmacro measure(opts, do: block_do, after: block_after) do
     metric = opts[:event]
     context = opts[:context]

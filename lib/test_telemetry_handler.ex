@@ -1,4 +1,4 @@
-defmodule Telemedo.TestTelemetryHandler do
+defmodule Telemetrex.TestTelemetryHandler do
   use GenServer
 
   # Client Interface

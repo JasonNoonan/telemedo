@@ -1,5 +1,5 @@
 {
-  description = "Telemedo as a flake";
+  description = "Telemetrex as a flake";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

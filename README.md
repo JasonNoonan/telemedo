@@ -1,4 +1,4 @@
-# Telemedo
+# Telemetrex
 
 > This is a WIP beta project
 
@@ -10,7 +10,7 @@ by adding `telemedo` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:telemedo, "~> 0.1.0"}
+    {:telemetrex, "~> 0.1.0"}
   ]
 end
 ```

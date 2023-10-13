@@ -1,12 +1,12 @@
-defmodule TelemedoTest do
+defmodule TelemetrexTest do
   use ExUnit.Case, async: true
-  alias Telemedo.TestTelemetryHandler
+  alias Telemetrex.TestTelemetryHandler
 
   defmodule Fake do
-    require Telemedo
+    require Telemetrex
 
     def test() do
-      Telemedo.measure event: [:test], context: %{initial: true} do
+      Telemetrex.measure event: [:test], context: %{initial: true} do
         42
       after
         42 ->
