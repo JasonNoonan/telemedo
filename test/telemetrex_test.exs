@@ -1,6 +1,5 @@
 defmodule TelemetrexTest do
   use ExUnit.Case, async: true
-  alias Telemetrex.TestTelemetryHandler
 
   defmodule Fake do
     require Telemetrex
@@ -44,27 +43,26 @@ defmodule TelemetrexTest do
     end
   end
 
-  setup %{test: test} do
-    {:ok, handler} =
-      start_supervised(
-        {TestTelemetryHandler,
-         id: test, events: [[:test, :start], [:test, :stop], [:nested, :start], [:nested, :stop]]}
-      )
+  setup do
+    telemetry_ref =
+      :telemetry_test.attach_event_handlers(self(), [
+        [:test, :start],
+        [:test, :stop],
+        [:nested, :start],
+        [:nested, :stop]
+      ])
 
-    {:ok, handler: handler}
+    {:ok, %{telemetry_ref: telemetry_ref}}
   end
 
-  test "correct start and stop events are fired", %{handler: handler} do
+  test "correct start and stop events are fired", %{telemetry_ref: telemetry_ref} do
     assert 42 = Fake.test()
 
-    assert [[:test, :start], _measurements, _context] =
-             TestTelemetryHandler.get_event(handler, 1)
-
-    assert [[:test, :stop], _measurements, _context] =
-             TestTelemetryHandler.get_event(handler, 2)
+    assert_received {[:test, :start], ^telemetry_ref, _measurements, _context}
+    assert_received {[:test, :stop], ^telemetry_ref, _measurements, _context}
   end
 
-  test "calling nested span blocks", %{handler: handler} do
+  test "calling nested span blocks", %{telemetry_ref: telemetry_ref} do
     assert 42 =
              Fake.nested(
                outer_context: %{outer: true},
@@ -73,33 +71,22 @@ defmodule TelemetrexTest do
                inner_after_context: %{inner_after: true}
              )
 
-    assert [[:test, :start], _measurements, %{outer: true}] =
-             TestTelemetryHandler.get_event(handler, 1)
-
-    assert [[:nested, :start], _measurements, %{inner: true}] =
-             TestTelemetryHandler.get_event(handler, 2)
-
-    assert [[:nested, :stop], _measurements, %{inner_after: true}] =
-             TestTelemetryHandler.get_event(handler, 3)
-
-    assert [[:test, :stop], _measurements, %{outer_after: true}] =
-             TestTelemetryHandler.get_event(handler, 4)
+    assert_received {[:test, :start], ^telemetry_ref, _measurements, %{outer: true}}
+    assert_received {[:nested, :start], ^telemetry_ref, _measurements, %{inner: true}}
+    assert_received {[:nested, :stop], ^telemetry_ref, _measurements, %{inner_after: true}}
+    assert_received {[:test, :stop], ^telemetry_ref, _measurements, %{outer_after: true}}
   end
 
-  test "initial metadata can be passed for start event", %{handler: handler} do
+  test "initial metadata can be passed for start event", %{telemetry_ref: telemetry_ref} do
     assert 42 = Fake.test(context: %{initial: true})
 
-    assert [[:test, :start], _measurements, %{initial: true}] =
-             TestTelemetryHandler.get_event(handler, 1)
+    assert_received {[:test, :start], ^telemetry_ref, _measurements, %{initial: true}}
   end
 
-  test "after block adds metadata to stop event", %{handler: handler} do
+  test "after block adds metadata to stop event", %{telemetry_ref: telemetry_ref} do
     assert 42 = Fake.with_after(after_context: %{after: true})
 
-    assert [[:test, :start], _measurements, _context] =
-             TestTelemetryHandler.get_event(handler, 1)
-
-    assert [[:test, :stop], _measurements, %{after: true}] =
-             TestTelemetryHandler.get_event(handler, 2)
+    assert_received {[:test, :start], ^telemetry_ref, _measurements, _context}
+    assert_received {[:test, :stop], ^telemetry_ref, _measurements, %{after: true}}
   end
 end
