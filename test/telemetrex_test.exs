@@ -41,6 +41,12 @@ defmodule TelemetrexTest do
           outer_after_context
       end
     end
+
+    def no_context() do
+      Telemetrex.span event: [:test] do
+        :no_context
+      end
+    end
   end
 
   setup do
@@ -79,8 +85,10 @@ defmodule TelemetrexTest do
 
   test "initial metadata can be passed for start event", %{telemetry_ref: telemetry_ref} do
     assert 42 = Fake.test(context: %{initial: true})
-
     assert_received {[:test, :start], ^telemetry_ref, _measurements, %{initial: true}}
+
+    assert :no_context = Fake.no_context()
+    assert_received {[:test, :start], ^telemetry_ref, _measurements, %{}}
   end
 
   test "after block adds metadata to stop event", %{telemetry_ref: telemetry_ref} do
