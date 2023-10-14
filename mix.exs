@@ -1,10 +1,20 @@
 defmodule Telemetrex.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/JasonNoonan/telemetrex"
+
   def project do
     [
       app: :telemetrex,
       version: "0.1.0",
+      description: "Elixir-friendly wrappers over `:telemetry`.",
+      source_url: @source_url,
+      homepage_url: @source_url,
+      package: [
+        licenses: ["Apache-2.0"],
+        links: %{"GitHub" => @source_url}
+      ],
+      docs: docs(),
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps()
@@ -22,7 +32,14 @@ defmodule Telemetrex.MixProject do
   defp deps do
     [
       {:credo, "~> 1.7", only: [:dev]},
+      {:ex_doc, "~> 0.20", only: :dev, runtime: false},
       {:telemetry, "~> 1.0", optional: true}
+    ]
+  end
+
+  defp docs() do
+    [
+      main: "Telemetrex"
     ]
   end
 end
