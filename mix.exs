@@ -39,7 +39,11 @@ defmodule Telemetrex.MixProject do
 
   defp docs() do
     [
-      main: "Telemetrex"
+      main: "Telemetrex",
+      extra_section: "GUIDES",
+      extras: [
+        "docs/testing.md"
+      ]
     ]
   end
 end
