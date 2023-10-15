@@ -47,6 +47,17 @@ defmodule TelemetrexTest do
         :no_context
       end
     end
+
+    def no_merge(opts) do
+      context = Keyword.get(opts, :context, %{})
+      after_context = Keyword.get(opts, :after_context, %{})
+
+      Telemetrex.span event: [:test], context: context, merge?: false do
+        :no_merge
+      after
+        _whatever -> after_context
+      end
+    end
   end
 
   setup do
@@ -92,9 +103,17 @@ defmodule TelemetrexTest do
   end
 
   test "after block adds metadata to stop event", %{telemetry_ref: telemetry_ref} do
-    assert 42 = Fake.with_after(after_context: %{after: true})
+    opts = [context: %{initial: true}, after_context: %{after: true}]
+    assert 42 = Fake.with_after(opts)
 
-    assert_received {[:test, :start], ^telemetry_ref, _measurements, _context}
-    assert_received {[:test, :stop], ^telemetry_ref, _measurements, %{after: true}}
+    assert_received {[:test, :start], ^telemetry_ref, _measurements, %{initial: true}}
+    assert_received {[:test, :stop], ^telemetry_ref, _measurements, %{initial: true, after: true}}
+
+    # merge can be opted out of
+    assert :no_merge = Fake.no_merge(opts)
+
+    assert_received {[:test, :start], ^telemetry_ref, _measurements, %{initial: true}}
+    assert_received {[:test, :stop], ^telemetry_ref, _measurements, metadata}
+    refute Map.has_key?(metadata, :initial)
   end
 end

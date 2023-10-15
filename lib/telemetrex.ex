@@ -65,16 +65,40 @@ defmodule Telemetrex do
   @doc """
   An Elixir-friendly wrapper for `:telemetry.span`.
 
+  ## Options
+
+    * `event` - event prefix that will be added to start/stop events
+    * `context` - initial context added to start event
+    * `merge?` (default: true) - whether to merge start and stop metadata
+
+  ```elixir
+  def user_create(user_params) do
+    Telemetrex.span event: [:my_app, :user_create], context: %{params: user_params} do
+      %MyApp.User{}
+      |> MyApp.User.create_changeset(user_params)
+      |> MyApp.Repo.insert()
+    after
+      {:ok, %MyApp.User{} = user} ->
+        %{user: user}
+
+      {:error, changeset} ->
+        %{error: true, changeset: changeset}
+    end
+  end
+  ```
+
   Everything in the `do` block becomes the return value of the macro. This
   value is also passed to the optional `after` block, which can be used to set
-  metadata for the ending event.
+  additional metadata for the ending event.
 
-  > Similar to `:telemetry.span`, the metadata in the ending event is not
-  merged with the initial context. If you want them merged, manually do so in
-  the after block clause.
+  > Unlike `:telemetry.span`, the metadata in the ending event is merged with
+  the initial context. If you do not want them merged, set `merged?` to false.
+  There are some areas where avoiding the overhead of the merge operation is
+  desireable such as ecto or over high performance telemetry events.
   """
   defmacro span(opts, clauses) do
     metric = opts[:event]
+    merge? = Keyword.get(opts, :merge?, true)
 
     context =
       Keyword.get(
@@ -106,7 +130,12 @@ defmodule Telemetrex do
             unquote(block_after)
           end
 
-        {return_value, after_meta}
+        {return_value,
+         if unquote(merge?) do
+           Map.merge(unquote(context), after_meta)
+         else
+           after_meta
+         end}
       end)
     end
   end
