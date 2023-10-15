@@ -1,6 +1,8 @@
 defmodule TelemetrexTest do
   use ExUnit.Case, async: true
 
+  doctest Telemetrex
+
   defmodule Fake do
     require Telemetrex
 

@@ -94,7 +94,7 @@ defmodule Telemetrex do
   > Unlike `:telemetry.span`, the metadata in the ending event is merged with
   the initial context. If you do not want them merged, set `merged?` to false.
   There are some areas where avoiding the overhead of the merge operation is
-  desireable such as ecto or over high performance telemetry events.
+  desirable such as ecto or over high performance telemetry events.
   """
   defmacro span(opts, clauses) do
     metric = opts[:event]
@@ -137,6 +137,36 @@ defmodule Telemetrex do
            after_meta
          end}
       end)
+    end
+  end
+
+  @doc """
+  Provides a human-readable duration with correct units.
+
+  Pass the duration of the `:telemetry` span from the returned measurements to
+  prettify the display for easier reading, i.e., in logs, etc.
+
+  **Note**: the duration's time unit is native to the machine where the code is
+  running when coming from `:telemetry`
+
+  ```elixir
+  iex> Telemetrex.pretty_duration(2083)
+  "2µs"
+
+  iex> Telemetrex.pretty_duration(150_000_000)
+  "150ms"
+  ```
+  """
+  def pretty_duration(duration) do
+    duration = System.convert_time_unit(duration, :native, :microsecond)
+
+    if duration > 1000 do
+      duration
+      |> div(1000)
+      |> Integer.to_string()
+      |> Kernel.<>("ms")
+    else
+      Integer.to_string(duration) <> "µs"
     end
   end
 end
