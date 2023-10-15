@@ -6,7 +6,7 @@ defmodule Telemetrex.MixProject do
   def project do
     [
       app: :telemetrex,
-      version: "0.1.0",
+      version: "0.2.0",
       description: "Elixir-friendly wrappers over `:telemetry`.",
       source_url: @source_url,
       homepage_url: @source_url,
