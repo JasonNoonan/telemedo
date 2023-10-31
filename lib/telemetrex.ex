@@ -120,7 +120,7 @@ defmodule Telemetrex do
         end
       )
 
-    quote do
+    quote generated: true do
       :telemetry.span(unquote(metric), unquote(context), fn ->
         return_value = unquote(block_do)
 
@@ -130,12 +130,14 @@ defmodule Telemetrex do
             unquote(block_after)
           end
 
-        {return_value,
-         if unquote(merge?) do
-           Map.merge(unquote(context), after_meta)
-         else
-           after_meta
-         end}
+        {
+          return_value,
+          if unquote(merge?) do
+            Map.merge(unquote(context), after_meta)
+          else
+            after_meta
+          end
+        }
       end)
     end
   end
